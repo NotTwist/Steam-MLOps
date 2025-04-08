@@ -1,0 +1,4 @@
+batch_size: 100
+output_dir: raw_batches
+dataset_location: games.json
+csv_file: games.csv
