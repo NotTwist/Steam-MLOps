@@ -6,7 +6,7 @@ import numpy as np
 import yaml
 import logging
 import ast
-
+from auto_eda import auto_eda
 
 def get_json_data(dataset_location: str) -> dict:
     if os.path.exists(dataset_location):
@@ -95,7 +95,12 @@ def get_batch(file_path, batch_size, date_column, batch_number=0, output_dir=Non
             logging.info(
                 f"No more batches available. Batch number {batch_number} is empty.")
         return None  # No more batches available
-
+    
+    if not validate_batch(batch, verbose=verbose):
+        batch_number += 1
+        update_batch_number('config.yaml', batch_number)
+        return None
+    
     if output_dir:
         os.makedirs(output_dir, exist_ok=True)
         batch_file_path = f"{output_dir}/batch_{batch_number}.csv"
@@ -137,6 +142,29 @@ def data_quality_metrics(df):
     }
     return metrics
 
+def validate_batch(df, max_missing=0.1, max_duplicates=0.05, max_outliers=0.1, verbose=True):
+    metrics = data_quality_metrics(df)
+    total_rows = len(df)
+
+    # Calculate thresholds
+    missing_threshold = total_rows * max_missing
+    duplicate_threshold = total_rows * max_duplicates
+    outlier_threshold = total_rows * max_outliers
+    if verbose:
+        log_data_quality(df)
+    # Check if metrics exceed thresholds
+    if any(value > missing_threshold for value in metrics["missing_values"].values()):
+        logging.warning("Batch skipped due to excessive missing values.")
+        return False
+    if metrics["duplicates"] > duplicate_threshold:
+        logging.warning("Batch skipped due to excessive duplicates.")
+        return False
+    if any(value > outlier_threshold for value in metrics["outliers"].values()):
+        logging.warning("Batch skipped due to excessive outliers.")
+        return False
+
+    return True
+
 
 def log_data_quality(df):
     metrics = data_quality_metrics(df)
@@ -170,12 +198,12 @@ if __name__ == "__main__":
     #     date_column="release_date"
     # )
 
-    get_batch(
+    batch = get_batch(
         file_path=config['csv_file'],
         batch_size=config['batch_size'],
         date_column="release_date",
         batch_number=config["current_batch_number"],
         output_dir=config['batch_storage'],
     )
-
+    # auto_eda(batch)
     logging.info("Data streaming completed.")

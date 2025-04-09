@@ -78,12 +78,12 @@ def auto_eda(df, output_dir="eda_images"):
         print(df[col].value_counts(normalize=True).head(10))
     # 9. Distribution of list-like categorical data
     print("\n### Distribution of List-like Categorical Data ###")
-    list_like_columns = ['tags', 'genre', 'category']
+    list_like_columns = ['tags', 'genres', 'categories']
     for col in list_like_columns:
         if col in df.columns:
             plt.figure(figsize=(16, 16))
 
-
+            print(df[col])
             exploded = df[col].apply(ast.literal_eval)  
             exploded = exploded.explode()
             exploded.value_counts().head(10).plot(kind='bar')
@@ -94,6 +94,6 @@ def auto_eda(df, output_dir="eda_images"):
             plt.close()  # Close the plot to avoid displaying it
 
 if __name__ == "__main__":
-    df = pd.read_csv('raw_batches/batch_665.csv')
+    df = pd.read_csv('raw_batches/batch_17.csv')
     print(len(df.columns))
     auto_eda(df)

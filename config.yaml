@@ -1,5 +1,5 @@
 batch_size: 100
 batch_storage: raw_batches
 csv_file: games.csv
-current_batch_number: 2
+current_batch_number: 18
 dataset_location: games.json
