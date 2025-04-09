@@ -45,18 +45,16 @@ def clean_df(df: pd.DataFrame) -> pd.DataFrame:
                                                      df['negative'] == 0) | (df['categories'].str.len() == 0))]
 
     # Split estimated_owners into two: min_owners and max_owners
-    df.loc[:, ['min_owners', 'max_owners']] = df['estimated_owners'].str.split(
-        ' - ', expand=True)
+    df = df.copy()
+    df[['min_owners', 'max_owners']] = df['estimated_owners'].str.split(' - ', expand=True)
+
 
     # Remove the original field
     df = df.drop('estimated_owners', axis=1)
 
     df['positive_procent'] = df['positive'] / \
         (df['positive'] + df['negative']) * 100
-    # print(df['tags'].head())
-    # df['tags'] = df['tags'].apply(ast.literal_eval)
-    # df['categories'] = df['categories'].apply(ast.literal_eval)
-    # df['genres'] = df['genres'].apply(ast.literal_eval)
+
     return df
 
 

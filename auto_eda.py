@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-
+import ast
 # Function for automatic EDA
 
 
@@ -32,7 +32,7 @@ def auto_eda(df, output_dir="eda_images"):
     print("\n### Distribution of Numerical Data ###")
     numerical_columns = df.select_dtypes(include=['int64', 'float64']).columns
     for col in numerical_columns:
-        plt.figure(figsize=(16, 8))
+        plt.figure(figsize=(16, 16))
         sns.histplot(df[col], kde=True, bins=30)
         plt.title(f'Distribution of {col}')
         plt.xlabel(col)
@@ -44,7 +44,7 @@ def auto_eda(df, output_dir="eda_images"):
     print("\n### Distribution of Categorical Data ###")
     categorical_columns = df.select_dtypes(include=['object']).columns
     for col in categorical_columns:
-        plt.figure(figsize=(16, 8))
+        plt.figure(figsize=(16, 16))
         df[col].value_counts().head(10).plot(kind='bar')
         plt.title(f'Distribution of {col}')
         plt.xlabel(col)
@@ -54,7 +54,7 @@ def auto_eda(df, output_dir="eda_images"):
 
     # 6. Correlation matrix
     print("\n### Correlation Matrix ###")
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(10, 10))
     correlation_matrix = df[numerical_columns].corr()
     sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt='.2f')
     plt.title('Correlation Matrix')
@@ -77,3 +77,24 @@ def auto_eda(df, output_dir="eda_images"):
     for col in categorical_columns:
         print(f"\n{col}:")
         print(df[col].value_counts(normalize=True).head(10))
+    # 9. Distribution of list-like categorical data
+    print("\n### Distribution of List-like Categorical Data ###")
+    list_like_columns = ['tags', 'genre', 'category']
+    for col in list_like_columns:
+        if col in df.columns:
+            plt.figure(figsize=(16, 16))
+
+
+            exploded = df[col].apply(ast.literal_eval)  
+            exploded = exploded.explode()
+            exploded.value_counts().head(10).plot(kind='bar')
+            plt.title(f'Distribution of {col}')
+            plt.xlabel(col)
+            plt.ylabel('Frequency')
+            plt.savefig(f"{output_dir}/distribution_{col}.png")  # Save the plot
+            plt.close()  # Close the plot to avoid displaying it
+
+if __name__ == "__main__":
+    df = pd.read_csv('raw_batches/batch_0.csv')
+    print(len(df.columns))
+    auto_eda(df)
