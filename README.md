@@ -21,6 +21,7 @@ python dataset_utils.py
 ```
 
 This script will create:
+
 - `games.csv`: A structured CSV file containing the dataset.
 - `raw_batches/`: A folder containing chronological batches of the `games.csv` data.
 

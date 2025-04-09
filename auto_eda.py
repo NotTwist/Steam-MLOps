@@ -3,10 +3,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import ast
-
+from load_config import load_from_config
 # Function for automatic EDA
-def auto_eda(df, output_dir="eda_images"):
+def auto_eda(df):
     import os
+
+    config = load_from_config()
+    output_dir = config["eda_storage"]
     # Create directory for saving images
     os.makedirs(output_dir, exist_ok=True)
 

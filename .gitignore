@@ -6,3 +6,4 @@ raw_batches/
 __pycache__/
 *.html
 *.zip
+reports/

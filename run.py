@@ -1,9 +1,10 @@
 import argparse
 
 import pandas as pd
-from dataset_utils import create_df, clean_df, get_batch, get_json_data, load_from_config
+from dataset_utils import create_df, clean_df, get_batch, get_json_data, load_from_config, monitor_and_handle_data_drift
 import os
 import logging
+from auto_eda import auto_eda
 if __name__ == "__main__":
 
     logging.basicConfig(
@@ -47,10 +48,12 @@ if __name__ == "__main__":
             date_column="release_date",
             batch_number=config["current_batch_number"],
             output_dir=config['batch_storage'],
-            verbose=False
+            verbose=True
         )
-        logging.info("Batch fetched and stored successfully.")
 
+        monitor_and_handle_data_drift(config["batch_storage"], config["current_batch_number"], batch,  config["report_storage"])
+        
+        auto_eda(batch)
         ### Model creation and fitting...
 
         ###

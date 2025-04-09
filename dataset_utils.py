@@ -1,3 +1,4 @@
+from scipy.stats import ks_2samp
 import os
 import time
 import pandas as pd
@@ -7,6 +8,7 @@ import yaml
 import logging
 import ast
 from auto_eda import auto_eda
+from load_config import load_from_config
 
 def get_json_data(dataset_location: str) -> dict:
     if os.path.exists(dataset_location):
@@ -95,12 +97,12 @@ def get_batch(file_path, batch_size, date_column, batch_number=0, output_dir=Non
             logging.info(
                 f"No more batches available. Batch number {batch_number} is empty.")
         return None  # No more batches available
-    
-    if not validate_batch(batch, verbose=verbose):
+
+    if not validate_batch(batch, batch_number, verbose=verbose):
         batch_number += 1
         update_batch_number('config.yaml', batch_number)
         return None
-    
+
     if output_dir:
         os.makedirs(output_dir, exist_ok=True)
         batch_file_path = f"{output_dir}/batch_{batch_number}.csv"
@@ -113,45 +115,52 @@ def get_batch(file_path, batch_size, date_column, batch_number=0, output_dir=Non
 
     return batch
 
+
 def update_batch_number(config_path, new_batch_number):
     if not os.path.exists(config_path):
         raise FileNotFoundError(f"Config file {config_path} not found.")
-    
+
     with open(config_path, 'r') as f:
         config = yaml.safe_load(f)
-    
+
     config['current_batch_number'] = new_batch_number
-    
+
     with open(config_path, 'w') as f:
         yaml.safe_dump(config, f)
-    
 
-def load_from_config():
-    config_location = 'config.yaml'
-    with open(config_location, 'r') as f:
-        config = yaml.safe_load(f)
-    return config
+
+
 
 # Dataset quality check
+
+
 def data_quality_metrics(df):
     metrics = {
         "missing_values": df.isnull().sum().to_dict(),
         "duplicates": df.duplicated().sum(),
         "outliers": {col: ((df[col] < df[col].quantile(0.01)) | (df[col] > df[col].quantile(0.99))).sum()
-                     for col in df.select_dtypes(include=["float64", "int64"]).columns}
+                     for col in df.select_dtypes(include=["float64", "int64"]).columns},
+        "zero_values": {col: (df[col] == 0).sum() for col in df.select_dtypes(include=["float64", "int64"]).columns}
     }
     return metrics
 
-def validate_batch(df, max_missing=0.1, max_duplicates=0.05, max_outliers=0.1, verbose=True):
+
+def validate_batch(df, batch_numder, verbose=True):
+    config = load_from_config()
+    max_missing = config.get("max_missing", 0.1)
+    max_duplicates = config.get("max_duplicates", 0.05)
+    max_outliers = config.get("max_outliers", 0.1)
+    # max_zero = config.get("max_zeros", 0.1)
     metrics = data_quality_metrics(df)
     total_rows = len(df)
 
     # Calculate thresholds
     missing_threshold = total_rows * max_missing
+    # zero_threshold = total_rows * max_zero
     duplicate_threshold = total_rows * max_duplicates
     outlier_threshold = total_rows * max_outliers
     if verbose:
-        log_data_quality(df)
+        save_data_quality_report(metrics, batch_numder)
     # Check if metrics exceed thresholds
     if any(value > missing_threshold for value in metrics["missing_values"].values()):
         logging.warning("Batch skipped due to excessive missing values.")
@@ -162,15 +171,139 @@ def validate_batch(df, max_missing=0.1, max_duplicates=0.05, max_outliers=0.1, v
     if any(value > outlier_threshold for value in metrics["outliers"].values()):
         logging.warning("Batch skipped due to excessive outliers.")
         return False
+    # if any(value > zero_threshold for value in metrics["zero_values"].values()):
+    #     logging.warning("Batch skipped due to excessive zero values.")
+    #     return False
 
     return True
 
 
-def log_data_quality(df):
-    metrics = data_quality_metrics(df)
-    logging.info("Data Quality Metrics:")
-    for metric, value in metrics.items():
-        logging.info(f"{metric}: {value}")
+def convert_numpy_types(data):
+    """
+    Recursively convert numpy types to native Python types.
+    """
+    if isinstance(data, dict):
+        return {key: convert_numpy_types(value) for key, value in data.items()}
+    elif isinstance(data, list):
+        return [convert_numpy_types(item) for item in data]
+    elif isinstance(data, (np.integer, np.int64)):
+        return int(data)
+    elif isinstance(data, (np.floating, np.float64)):
+        return float(data)
+    elif isinstance(data, np.ndarray):
+        return data.tolist()
+    elif isinstance(data, (np.bool_, bool)):
+        return bool(data)
+    else:
+        return data
+
+
+def save_data_quality_report(metrics: dict, batch_number: int):
+    """
+    Save data quality metrics to a JSON file.
+    """
+    config = load_from_config()
+    output_dir = config["report_storage"]
+    os.makedirs(output_dir, exist_ok=True)
+    output_path = f"{output_dir}/data_quality_report_batch_{batch_number}.yaml"
+    metrics = convert_numpy_types(metrics)
+    with open(output_path, 'w', encoding='utf-8') as f:
+        yaml.safe_dump(metrics, f, indent=4)
+    logging.info(f"Data quality report saved to {output_path}")
+
+def detect_data_drift(reference_df: pd.DataFrame, current_df: pd.DataFrame, columns: list) -> dict:
+    """
+    Detect data drift using KS-test for numerical columns.
+    """
+    drift_results = {}
+    for col in columns:
+        stat, p_value = ks_2samp(
+            reference_df[col].dropna(), current_df[col].dropna())
+        drift_results[col] = {"p_value": p_value,
+                              "drift_detected": p_value < 0.05}
+    return drift_results
+
+
+def create_reference_data(batch_storage: str, batch_number: int, output_path: str):
+    """
+    Create reference data by combining all previous batches.
+    """
+    all_batches = []
+    for i in range(batch_number):
+        batch_file = os.path.join(batch_storage, f"batch_{i}.csv")
+        if os.path.exists(batch_file):
+            batch_df = pd.read_csv(batch_file)
+            all_batches.append(batch_df)
+        else:
+            logging.warning(f"Batch file {batch_file} not found. Skipping.")
+
+    if all_batches:
+        reference_df = pd.concat(all_batches, ignore_index=True)
+        return reference_df
+    else:
+        logging.warning("No batches found to create reference data.")
+
+
+def monitor_and_handle_data_drift(
+    batch_storage: str,
+    batch_number: int,
+    current_df: pd.DataFrame,
+    output_dir: str,
+    update_reference: bool = False
+):
+    """
+    Monitor and handle data drift by comparing current data with reference data.
+
+    Args:
+        batch_storage (str): Path to the directory containing batch files.
+        batch_number (int): Current batch number.
+        current_df (pd.DataFrame): Current batch of data.
+        output_dir (str): Directory to save drift reports.
+        update_reference (bool): Whether to update reference data with the current batch.
+    """
+    # Step 1: Create reference data from previous batches
+    logging.info("Creating reference data from previous batches...")
+    reference_df = create_reference_data(
+        batch_storage, batch_number, output_path=None)
+    if reference_df is None or reference_df.empty:
+        logging.warning(
+            "No reference data available. Skipping data drift detection.")
+        return
+
+    # Step 2: Automatically detect numerical columns
+    numerical_columns = current_df.select_dtypes(include=["float64", "int64"]).columns.tolist()
+    if not numerical_columns:
+        logging.warning("No numerical columns found for data drift detection.")
+        return
+
+    # Step 3: Detect data drift using KS-test
+    logging.info("Detecting data drift...")
+    drift_results = detect_data_drift(
+        reference_df, current_df, numerical_columns)
+
+    # Step 4: Handle data drift
+    os.makedirs(output_dir, exist_ok=True)
+    drift_report_path = os.path.join(
+        output_dir, "data_drift_report_{batch_number}.yaml")
+    drift_results = convert_numpy_types(drift_results)
+    with open(drift_report_path, 'w', encoding='utf-8') as f:
+        yaml.safe_dump(drift_results, f, indent=4)
+    logging.info(f"Data drift report saved to {drift_report_path}")
+
+    # Log warnings for detected drift
+    for col, result in drift_results.items():
+        if result["drift_detected"]:
+            logging.warning(
+                f"Data drift detected in column '{col}' (p-value: {result['p_value']:.5f})")
+
+    # # Step 5: Optionally update reference data
+    # if update_reference:
+    #     logging.info("Updating reference data with the current batch...")
+    #     updated_reference_df = pd.concat(
+    #         [reference_df, current_df], ignore_index=True)
+    #     reference_data_path = os.path.join(output_dir, "reference_data.csv")
+    #     updated_reference_df.to_csv(reference_data_path, index=False)
+    #     logging.info(f"Updated reference data saved to {reference_data_path}")
 
 
 if __name__ == "__main__":
@@ -191,19 +324,19 @@ if __name__ == "__main__":
     df = clean_df(df)
     logging.info("DataFrame created and cleaned.")
     df.to_csv(config['csv_file'], index=False)
-    # stream_data_chronologically(
-    #     file_path=config['csv_file'],
-    #     batch_size=config['batch_size'],
-    #     output_dir=config['batch_storage'],
-    #     date_column="release_date"
-    # )
-
-    batch = get_batch(
+    stream_data_chronologically(
         file_path=config['csv_file'],
         batch_size=config['batch_size'],
-        date_column="release_date",
-        batch_number=config["current_batch_number"],
         output_dir=config['batch_storage'],
+        date_column="release_date"
     )
+
+    # batch = get_batch(
+    #     file_path=config['csv_file'],
+    #     batch_size=config['batch_size'],
+    #     date_column="release_date",
+    #     batch_number=config["current_batch_number"],
+    #     output_dir=config['batch_storage'],
+    # )
     # auto_eda(batch)
     logging.info("Data streaming completed.")
