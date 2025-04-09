@@ -46,13 +46,13 @@ def clean_df(df: pd.DataFrame) -> pd.DataFrame:
 
     # Split estimated_owners into two: min_owners and max_owners
     df = df.copy()
-    df[['min_owners', 'max_owners']] = df['estimated_owners'].str.split(' - ', expand=True)
-
+    df[['min_owners', 'max_owners']] = df['estimated_owners'].str.split(
+        ' - ', expand=True)
 
     # Remove the original field
     df = df.drop('estimated_owners', axis=1)
 
-    df['positive_procent'] = df['positive'] / \
+    df['positive_percent'] = df['positive'] / \
         (df['positive'] + df['negative']) * 100
 
     return df
@@ -78,6 +78,49 @@ def stream_data_chronologically(file_path, batch_size, output_dir, date_column, 
             print(f"Batch {i // batch_size} saved.", end='\r')
 
 
+def get_batch(file_path, batch_size, date_column, batch_number=0, output_dir=None, verbose=True):
+    if verbose:
+        logging.info(
+            f"Fetching batch number {batch_number} from {file_path}...")
+    df = pd.read_csv(file_path)
+    df[date_column] = pd.to_datetime(df[date_column], errors='coerce')
+    df = df.sort_values(by=date_column)
+
+    start_index = batch_number * batch_size
+    end_index = start_index + batch_size
+    batch = df.iloc[start_index:end_index]
+
+    if batch.empty:
+        if verbose:
+            logging.info(
+                f"No more batches available. Batch number {batch_number} is empty.")
+        return None  # No more batches available
+
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
+        batch_file_path = f"{output_dir}/batch_{batch_number}.csv"
+        batch.to_csv(batch_file_path, index=False)
+        if verbose:
+            logging.info(f"Batch {batch_number} saved to {batch_file_path}.")
+
+    batch_number += 1
+    update_batch_number('config.yaml', batch_number)
+
+    return batch
+
+def update_batch_number(config_path, new_batch_number):
+    if not os.path.exists(config_path):
+        raise FileNotFoundError(f"Config file {config_path} not found.")
+    
+    with open(config_path, 'r') as f:
+        config = yaml.safe_load(f)
+    
+    config['current_batch_number'] = new_batch_number
+    
+    with open(config_path, 'w') as f:
+        yaml.safe_dump(config, f)
+    
+
 def load_from_config():
     config_location = 'config.yaml'
     with open(config_location, 'r') as f:
@@ -85,8 +128,6 @@ def load_from_config():
     return config
 
 # Dataset quality check
-
-
 def data_quality_metrics(df):
     metrics = {
         "missing_values": df.isnull().sum().to_dict(),
@@ -122,10 +163,19 @@ if __name__ == "__main__":
     df = clean_df(df)
     logging.info("DataFrame created and cleaned.")
     df.to_csv(config['csv_file'], index=False)
-    stream_data_chronologically(
+    # stream_data_chronologically(
+    #     file_path=config['csv_file'],
+    #     batch_size=config['batch_size'],
+    #     output_dir=config['batch_storage'],
+    #     date_column="release_date"
+    # )
+
+    get_batch(
         file_path=config['csv_file'],
         batch_size=config['batch_size'],
-        output_dir=config['output_dir'],
-        date_column="release_date"
+        date_column="release_date",
+        batch_number=config["current_batch_number"],
+        output_dir=config['batch_storage'],
     )
+
     logging.info("Data streaming completed.")

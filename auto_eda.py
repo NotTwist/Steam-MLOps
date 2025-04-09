@@ -3,9 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import ast
+
 # Function for automatic EDA
-
-
 def auto_eda(df, output_dir="eda_images"):
     import os
     # Create directory for saving images
@@ -95,6 +94,6 @@ def auto_eda(df, output_dir="eda_images"):
             plt.close()  # Close the plot to avoid displaying it
 
 if __name__ == "__main__":
-    df = pd.read_csv('raw_batches/batch_0.csv')
+    df = pd.read_csv('raw_batches/batch_665.csv')
     print(len(df.columns))
     auto_eda(df)
