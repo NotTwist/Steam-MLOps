@@ -1,9 +1,10 @@
 eda_images/
 raw_batches/
+reports/
+results/
+__pycache__/
 *.log
 *.json
 *.csv
-__pycache__/
 *.html
 *.zip
-reports/

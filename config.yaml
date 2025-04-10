@@ -1,11 +1,15 @@
-batch_size: 1000
+# folder locations
+output_dir: results
 batch_storage: raw_batches
-csv_file: games.csv
-current_batch_number: 22
-dataset_location: games.json
 eda_storage: eda_images
+csv_file: games.csv
+dataset_location: games.json
+report_storage: reports
+
+# batch meta parameters
+batch_size: 1000
+current_batch_number: 22
 max_duplicates: 0.05
 max_missing: 0.1
 max_outliers: 0.1
 max_zeros: 0.1
-report_storage: reports
