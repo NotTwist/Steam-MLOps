@@ -3,100 +3,107 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import ast
+import os
 from load_config import load_from_config
-# Function for automatic EDA
-def auto_eda(df):
-    import os
 
+
+def auto_eda(df):
+    """Perform automatic EDA and save results to a log file."""
     config = load_from_config()
     output_dir = config["eda_storage"]
-    # Create directory for saving images
     os.makedirs(output_dir, exist_ok=True)
 
-    # 1. General information
-    print("### General Information ###")
-    print(df.info())
-    print("\n### First 5 Rows ###")
-    print(df.head())
-    print("\n### Last 5 Rows ###")
-    print(df.tail())
+    # Redirect output to a log file
+    log_file_path = os.path.join(output_dir, "eda_report.txt")
+    with open(log_file_path, "w", encoding='utf-8') as log_file:
+        def log_message(message):
+            log_file.write(message + "\n")
 
-    # 2. Missing values
-    print("\n### Missing Values ###")
-    missing_values = df.isnull().sum()
-    print(missing_values[missing_values > 0])
+        # 1. General information
+        # log_message("### General Information ###")
+        # log_message(str(df.info()))
+        log_message("\n### First 5 Rows ###")
+        log_message(str(df.head()))
+        log_message("\n### Last 5 Rows ###")
+        log_message(str(df.tail()))
 
-    # 3. Basic statistics
-    print("\n### Basic Statistics ###")
-    print(df.describe())
+        # 2. Missing values
+        log_message("\n### Missing Values ###")
+        missing_values = df.isnull().sum()
+        log_message(str(missing_values[missing_values > 0]))
 
-    # 4. Distribution of numerical data
-    print("\n### Distribution of Numerical Data ###")
-    numerical_columns = df.select_dtypes(include=['int64', 'float64']).columns
-    for col in numerical_columns:
-        plt.figure(figsize=(16, 16))
-        sns.histplot(df[col], kde=True, bins=30)
-        plt.title(f'Distribution of {col}')
-        plt.xlabel(col)
-        plt.ylabel('Frequency')
-        plt.savefig(f"{output_dir}/distribution_{col}.png")  # Save the plot
-        plt.close()  # Close the plot to avoid displaying it
+        # 3. Basic statistics
+        log_message("\n### Basic Statistics ###")
+        log_message(str(df.describe()))
 
-    # 5. Distribution of categorical data
-    print("\n### Distribution of Categorical Data ###")
-    categorical_columns = df.select_dtypes(include=['object']).columns
-    for col in categorical_columns:
-        plt.figure(figsize=(16, 16))
-        df[col].value_counts().head(10).plot(kind='bar')
-        plt.title(f'Distribution of {col}')
-        plt.xlabel(col)
-        plt.ylabel('Frequency')
-        plt.savefig(f"{output_dir}/distribution_{col}.png")  # Save the plot
-        plt.close()  # Close the plot to avoid displaying it
-
-    # 6. Correlation matrix
-    print("\n### Correlation Matrix ###")
-    plt.figure(figsize=(10, 10))
-    correlation_matrix = df[numerical_columns].corr()
-    sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt='.2f')
-    plt.title('Correlation Matrix')
-    plt.savefig(f"{output_dir}/correlation_matrix.png")  # Save the plot
-    plt.close()  # Close the plot to avoid displaying it
-
-    # 7. Outliers (based on IQR)
-    print("\n### Outliers in Numerical Data ###")
-    for col in numerical_columns:
-        q1 = df[col].quantile(0.25)
-        q3 = df[col].quantile(0.75)
-        iqr = q3 - q1
-        lower_bound = q1 - 1.5 * iqr
-        upper_bound = q3 + 1.5 * iqr
-        outliers = df[(df[col] < lower_bound) | (df[col] > upper_bound)]
-        print(f"{col}: {len(outliers)} outliers")
-
-    # 8. Proportions of categorical data
-    print("\n### Proportions of Categorical Data ###")
-    for col in categorical_columns:
-        print(f"\n{col}:")
-        print(df[col].value_counts(normalize=True).head(10))
-    # 9. Distribution of list-like categorical data
-    print("\n### Distribution of List-like Categorical Data ###")
-    list_like_columns = ['tags', 'genres', 'categories']
-    for col in list_like_columns:
-        if col in df.columns:
+        # 4. Distribution of numerical data
+        log_message("\n### Distribution of Numerical Data ###")
+        numerical_columns = df.select_dtypes(
+            include=['int64', 'float64']).columns
+        for col in numerical_columns:
             plt.figure(figsize=(16, 16))
-
-            print(df[col])
-            exploded = df[col].apply(ast.literal_eval)  
-            exploded = exploded.explode()
-            exploded.value_counts().head(10).plot(kind='bar')
+            sns.histplot(df[col], kde=True, bins=30)
             plt.title(f'Distribution of {col}')
             plt.xlabel(col)
             plt.ylabel('Frequency')
-            plt.savefig(f"{output_dir}/distribution_{col}.png")  # Save the plot
-            plt.close()  # Close the plot to avoid displaying it
+            plt.savefig(f"{output_dir}/distribution_{col}.png")
+            plt.close()
+
+        # 5. Distribution of categorical data
+        log_message("\n### Distribution of Categorical Data ###")
+        categorical_columns = df.select_dtypes(include=['object']).columns
+        for col in categorical_columns:
+            plt.figure(figsize=(16, 16))
+            df[col].value_counts().head(10).plot(kind='bar')
+            plt.title(f'Distribution of {col}')
+            plt.xlabel(col)
+            plt.ylabel('Frequency')
+            plt.savefig(f"{output_dir}/distribution_{col}.png")
+            plt.close()
+
+        # 6. Correlation matrix
+        log_message("\n### Correlation Matrix ###")
+        plt.figure(figsize=(10, 10))
+        correlation_matrix = df[numerical_columns].corr()
+        sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt='.2f')
+        plt.title('Correlation Matrix')
+        plt.savefig(f"{output_dir}/correlation_matrix.png")
+        plt.close()
+
+        # 7. Outliers (based on IQR)
+        log_message("\n### Outliers in Numerical Data ###")
+        for col in numerical_columns:
+            q1 = df[col].quantile(0.25)
+            q3 = df[col].quantile(0.75)
+            iqr = q3 - q1
+            lower_bound = q1 - 1.5 * iqr
+            upper_bound = q3 + 1.5 * iqr
+            outliers = df[(df[col] < lower_bound) | (df[col] > upper_bound)]
+            log_message(f"{col}: {len(outliers)} outliers")
+
+        # 8. Proportions of categorical data
+        log_message("\n### Proportions of Categorical Data ###")
+        for col in categorical_columns:
+            log_message(f"\n{col}:")
+            log_message(str(df[col].value_counts(normalize=True).head(10)))
+
+        # 9. Distribution of list-like categorical data
+        log_message("\n### Distribution of List-like Categorical Data ###")
+        list_like_columns = ['tags', 'genres', 'categories']
+        for col in list_like_columns:
+            if col in df.columns:
+                plt.figure(figsize=(16, 16))
+                exploded = df[col].apply(ast.literal_eval).explode()
+                exploded.value_counts().head(10).plot(kind='bar')
+                plt.title(f'Distribution of {col}')
+                plt.xlabel(col)
+                plt.ylabel('Frequency')
+                plt.savefig(f"{output_dir}/distribution_{col}.png")
+                plt.close()
+
+    print(f"EDA report saved to {log_file_path}")
+
 
 if __name__ == "__main__":
     df = pd.read_csv('raw_batches/batch_17.csv')
-    print(len(df.columns))
     auto_eda(df)

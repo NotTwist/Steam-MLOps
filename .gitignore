@@ -1,7 +1,8 @@
-eda_images/
+eda/
 raw_batches/
 reports/
 results/
+infer/
 __pycache__/
 *.log
 *.json
