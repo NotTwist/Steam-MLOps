@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import ast
 import os
-from load_config import load_from_config
+from utils.load_config import load_from_config
 
 
 def auto_eda(df):

@@ -7,8 +7,8 @@ import numpy as np
 import yaml
 import logging
 import ast
-from auto_eda import auto_eda
-from load_config import load_from_config
+from monitoring.auto_eda import auto_eda
+from utils.load_config import load_from_config
 
 def get_json_data(dataset_location: str) -> dict:
     if os.path.exists(dataset_location):
@@ -26,7 +26,7 @@ def create_df(json) -> pd.DataFrame:
         'user_score', 'required_age', 'metacritic_score',
         'metacritic_url',  'detailed_description', 'about_the_game',
         'windows', 'mac', 'linux', 'achievements', 'full_audio_languages',
-        'dlc_count', 'supported_languages', 'developers', 'publishers'
+        'dlc_count', 'supported_languages', 'developers', 'publishers', 'discount'
     ]
     games = [{
         **{k: v for k, v in game_info.items() if k not in unnecessary_vars},
@@ -100,7 +100,7 @@ def get_batch(file_path, batch_size, date_column, batch_number=0, output_dir=Non
 
     if not validate_batch(batch, batch_number, verbose=verbose):
         batch_number += 1
-        update_batch_number('config.yaml', batch_number)
+        update_batch_number('options/config.yaml', batch_number)
         return None
 
     if output_dir:
@@ -111,7 +111,7 @@ def get_batch(file_path, batch_size, date_column, batch_number=0, output_dir=Non
             logging.info(f"Batch {batch_number} saved to {batch_file_path}.")
 
     batch_number += 1
-    update_batch_number('config.yaml', batch_number)
+    update_batch_number('options/config.yaml', batch_number)
 
     return batch
 
@@ -284,7 +284,7 @@ def monitor_and_handle_data_drift(
     # Step 4: Handle data drift
     os.makedirs(output_dir, exist_ok=True)
     drift_report_path = os.path.join(
-        output_dir, "data_drift_report_{batch_number}.yaml")
+        output_dir, f"data_drift_report_{batch_number}.yaml")
     drift_results = convert_numpy_types(drift_results)
     with open(drift_report_path, 'w', encoding='utf-8') as f:
         yaml.safe_dump(drift_results, f, indent=4)

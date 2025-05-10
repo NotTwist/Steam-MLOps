@@ -1,4 +1,4 @@
-from dataset_utils import convert_numpy_types
+from utils.dataset_utils import convert_numpy_types, load_from_config
 import os
 import yaml
 import pickle
@@ -12,7 +12,6 @@ from sklearn.neighbors import KNeighborsRegressor
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from tqdm import tqdm
-from dataset_utils import load_from_config
 import ast
 from sklearn.preprocessing import MultiLabelBinarizer
 import logging
@@ -60,12 +59,12 @@ def save_model(model, model_name, run_folder):
 
 def save_encoder_path_to_config(encoders_path):
     """Save the path to the encoders in config.yaml."""
-    with open("config.yaml", "r") as f:
+    with open("options/config.yaml", "r") as f:
         config = yaml.safe_load(f)
 
     config["encoders_path"] = encoders_path
 
-    with open("config.yaml", "w") as f:
+    with open("options/config.yaml", "w") as f:
         yaml.safe_dump(config, f)
 
     print(f"Best model path saved to config.yaml: {encoders_path}")
@@ -248,12 +247,12 @@ def train_and_evaluate(models, X_train, y_train, X_test, y_test, run_folder):
 
 def save_best_model_path_to_config(best_model_path):
     """Save the path to the best model in config.yaml."""
-    with open("config.yaml", "r") as f:
+    with open("options/config.yaml", "r") as f:
         config = yaml.safe_load(f)
 
     config["best_model_path"] = best_model_path
 
-    with open("config.yaml", "w") as f:
+    with open("options/config.yaml", "w") as f:
         yaml.safe_dump(config, f)
 
     print(f"Best model path saved to config.yaml: {best_model_path}")

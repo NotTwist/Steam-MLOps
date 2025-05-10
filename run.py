@@ -1,11 +1,11 @@
 import argparse
 import logging
 import os
-from auto_eda import auto_eda
-from train import train
-from infer import run_inference
-from dataset_utils import create_df, clean_df, get_batch, get_json_data, load_from_config, monitor_and_handle_data_drift
-from summary import generate_summary_report
+from monitoring.auto_eda import auto_eda
+from src.train import train
+from src.infer import run_inference
+from utils.dataset_utils import create_df, clean_df, get_batch, get_json_data, load_from_config, monitor_and_handle_data_drift
+from monitoring.summary import generate_summary_report
 
 if __name__ == "__main__":
     logging.basicConfig(
@@ -20,9 +20,9 @@ if __name__ == "__main__":
     config = load_from_config()
     parser = argparse.ArgumentParser(
         description="Run different modes of the ML pipeline.")
-    parser.add_argument("-mode", type=str, required=True, choices=["inference", "update", "summary"],
+    parser.add_argument("--mode", type=str, required=True, choices=["inference", "update", "summary"],
                         help="Mode of operation: 'inference', 'update', or 'summary'.")
-    parser.add_argument("-file", type=str, required=False,
+    parser.add_argument("--file", type=str, required=False,
                         help="Path to the input file (required for 'inference' mode).")
 
     args = parser.parse_args()
@@ -32,7 +32,7 @@ if __name__ == "__main__":
             raise ValueError(
                 "The '-file' argument is required for 'inference' mode.")
         input_file = args.file
-        output_folder = config.get("infer_folder", ".")
+        output_folder = config['infer_folder']
         os.makedirs(output_folder, exist_ok=True)
         output_file = os.path.join(output_folder, os.path.splitext(
             os.path.basename(input_file))[0] + "_with_predictions.csv")
@@ -47,12 +47,12 @@ if __name__ == "__main__":
 
     elif args.mode == "update":
         # Existing update logic
-        if not os.path.exists("games.csv"):
+        if not os.path.exists(config['csv_file']):
             logging.info("games.csv not found. Creating it from games.json.")
             json_data = get_json_data(config["dataset_location"])
             df = create_df(json_data)
             df = clean_df(df)
-            df.to_csv("games.csv", index=False)
+            df.to_csv(config['csv_file'], index=False)
             logging.info("games.csv created successfully.")
 
         logging.info("Fetching the next batch of data.")

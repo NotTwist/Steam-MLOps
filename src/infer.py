@@ -4,10 +4,10 @@ import pickle
 import pandas as pd
 from sklearn.preprocessing import MultiLabelBinarizer
 import yaml
-from dataset_utils import load_from_config
+from utils.dataset_utils import load_from_config
 
 
-def load_best_model(config_path="config.yaml"):
+def load_best_model(config_path="options/config.yaml"):
     """Load the best model from the path specified in config.yaml."""
     config = load_from_config()
 
@@ -23,7 +23,7 @@ def load_best_model(config_path="config.yaml"):
     return model
 
 
-def run_inference(input_file, output_file, config_path="config.yaml"):
+def run_inference(input_file, output_file, config_path="options/config.yaml"):
     """Run inference on the input file and save the results."""
     # Load the best model
     model = load_best_model(config_path)

@@ -3,10 +3,10 @@ import logging
 import os
 import yaml
 import pandas as pd
-from auto_eda import auto_eda
-from train import train
-from infer import run_inference
-from dataset_utils import create_df, clean_df, get_batch, get_json_data, load_from_config, monitor_and_handle_data_drift, data_quality_metrics
+from monitoring.auto_eda import auto_eda
+from src.train import train
+from src.infer import run_inference
+from utils.dataset_utils import create_df, clean_df, get_batch, get_json_data, load_from_config, monitor_and_handle_data_drift, data_quality_metrics
 
 
 def generate_summary_report(config):
