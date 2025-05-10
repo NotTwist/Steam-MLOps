@@ -35,6 +35,7 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.KAGGLE_KEY }}" \
             "https://www.kaggle.com/api/v1/datasets/download/fronkongames/steam-games-dataset"
           unzip steam-games-dataset.zip -d storage/
-          rm steam-games-dataset.zip
+          rm steam-games-dataset.zip \
+          rm storage/games.csv
       - name: Run update
         run: python run.py -mode update
