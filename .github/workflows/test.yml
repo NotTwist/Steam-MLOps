@@ -35,5 +35,5 @@ jobs:
           unzip steam-games-dataset.zip -d storage/
           rm steam-games-dataset.zip
           rm storage/games.csv
-    - name: Run tests
-      run: pytest tests/ -v
+      - name: Run tests
+        run: pytest tests/ -v
