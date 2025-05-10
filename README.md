@@ -64,3 +64,8 @@ Output:
 
 A monitoring_report.txt file saved in the report_storage folder.
 
+### Dashboard
+Access dashboard by
+```
+python dashboard/app.py
+```
