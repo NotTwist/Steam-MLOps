@@ -1,0 +1,50 @@
+duplicates: 0
+missing_values:
+    app_id: 0
+    average_playtime_2weeks: 0
+    average_playtime_forever: 0
+    categories: 0
+    genres: 0
+    max_owners: 0
+    median_playtime_2weeks: 0
+    median_playtime_forever: 0
+    min_owners: 0
+    name: 0
+    negative: 0
+    peak_ccu: 0
+    positive: 0
+    positive_percent: 0
+    price: 0
+    recommendations: 0
+    release_date: 0
+    short_description: 0
+    tag_frequencies: 0
+    tags: 0
+outliers:
+    app_id: 20
+    average_playtime_2weeks: 10
+    average_playtime_forever: 10
+    max_owners: 10
+    median_playtime_2weeks: 10
+    median_playtime_forever: 10
+    min_owners: 10
+    negative: 10
+    peak_ccu: 10
+    positive: 18
+    positive_percent: 10
+    price: 5
+    recommendations: 10
+zero_values:
+    app_id: 0
+    average_playtime_2weeks: 877
+    average_playtime_forever: 137
+    max_owners: 0
+    median_playtime_2weeks: 877
+    median_playtime_forever: 137
+    min_owners: 85
+    negative: 13
+    peak_ccu: 293
+    positive: 0
+    positive_percent: 0
+    price: 120
+    recommendations: 198
