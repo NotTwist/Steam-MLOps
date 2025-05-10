@@ -20,9 +20,9 @@ if __name__ == "__main__":
     config = load_from_config()
     parser = argparse.ArgumentParser(
         description="Run different modes of the ML pipeline.")
-    parser.add_argument("--mode", type=str, required=True, choices=["inference", "update", "summary"],
+    parser.add_argument("-mode", type=str, required=True, choices=["inference", "update", "summary"],
                         help="Mode of operation: 'inference', 'update', or 'summary'.")
-    parser.add_argument("--file", type=str, required=False,
+    parser.add_argument("-file", type=str, required=False,
                         help="Path to the input file (required for 'inference' mode).")
 
     args = parser.parse_args()
