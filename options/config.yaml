@@ -11,12 +11,12 @@ IGNORE:
 TARGET: price
 batch_size: 1000
 batch_storage: storage/raw_batches
-best_model_path: storage/results/model_results_20250510_193553/best_model.pkl
+best_model_path: storage/results/model_results_20250510_230548/best_model.pkl
 csv_file: storage/games.csv
 current_batch_number: 0
 dataset_location: storage/games.json
 eda_storage: storage/results/eda
-encoders_path: storage/results/model_results_20250510_193553/encoders.pkl
+encoders_path: storage/results.model_results_20250510_230548/encoders.pkl
 infer_folder: storage/results/infer
 max_duplicates: 0.05
 max_missing: 0.1
