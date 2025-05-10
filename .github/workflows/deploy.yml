@@ -37,4 +37,4 @@ jobs:
           unzip steam-games-dataset.zip -d storage/
           rm steam-games-dataset.zip
       - name: Run update
-        run: python run.py --mode update
+        run: python run.py -mode update
