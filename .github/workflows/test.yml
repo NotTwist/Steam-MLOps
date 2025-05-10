@@ -1,5 +1,10 @@
 name: CI Tests
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+    branches: [ main ]  # Trigger on pushes to main branch
+  pull_request:
+    branches: [ main ]  # Trigger on PRs targeting main
+  workflow_dispatch:    # Allow manual triggers
 
 jobs:
   test:
