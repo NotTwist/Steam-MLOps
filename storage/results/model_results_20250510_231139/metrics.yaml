@@ -6,7 +6,7 @@ DecisionTree:
   mae: 4.827223256025617
   mse: 47.34927876783653
   r2: -0.05027868424742543
-  training_time: 1.4340059757232666
+  training_time: 1.8989996910095215
 KNN:
   best_params:
     n_neighbors: 9
@@ -15,7 +15,7 @@ KNN:
   mae: 4.8366027811611945
   mse: 44.54106643944937
   r2: 0.012011716495686664
-  training_time: 1.2200038433074951
+  training_time: 1.2288000583648682
 LinearRegression:
   best_params:
     fit_intercept: false
@@ -23,4 +23,4 @@ LinearRegression:
   mae: 4.876043442111105
   mse: 45.0190069432916
   r2: 0.001410272575384619
-  training_time: 3.8948957920074463
+  training_time: 4.656993627548218

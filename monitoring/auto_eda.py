@@ -5,6 +5,7 @@ import seaborn as sns
 import ast
 import os
 from utils.load_config import load_from_config
+import dataframe_image as dfi
 
 
 def auto_eda(df):
@@ -102,6 +103,8 @@ def auto_eda(df):
                 plt.close()
 
     print(f"EDA report saved to {log_file_path}")
+
+    dfi.export(df.describe(), f"{output_dir}/stats_table.png")
 
 
 if __name__ == "__main__":
