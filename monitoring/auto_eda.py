@@ -106,6 +106,8 @@ def auto_eda(df):
 
     dfi.export(df.describe(), f"{output_dir}/stats_table.png")
 
+    correlation_matrix.to_csv(f"{output_dir}/correlation_matrix.csv")
+
 
 if __name__ == "__main__":
     df = pd.read_csv('raw_batches/batch_17.csv')
