@@ -11,7 +11,7 @@ IGNORE:
 TARGET: price
 batch_size: 1000
 batch_storage: storage/raw_batches
-best_model_path: storage/results\model_results_20250511_225954\best_model.pkl
+best_model_path: storage/results/model_results_20250511_225954/best_model.pkl
 csv_file: storage/games.csv
 current_batch_number: 10
 dataset_location: storage/games.json
