@@ -10,6 +10,7 @@ import ast
 from monitoring.auto_eda import auto_eda
 from utils.load_config import load_from_config
 
+
 def get_json_data(dataset_location: str) -> dict:
     if os.path.exists(dataset_location):
         with open(dataset_location, 'r', encoding='utf-8') as f:
@@ -81,11 +82,12 @@ def stream_data_chronologically(file_path, batch_size, output_dir, date_column, 
 
 
 def get_batch(file_path, batch_size, date_column, batch_number=0, output_dir=None, verbose=True):
+    config = load_from_config()
+
     if verbose:
-        logging.info(
-            f"Fetching batch number {batch_number} from {file_path}...")
+        logging.info(f"Fetching batch number {batch_number} from {file_path}...")
     df = pd.read_csv(file_path)
-    df[date_column] = pd.to_datetime(df[date_column], errors='coerce')
+    df[date_column] = pd.to_datetime(df[date_column], errors="coerce")
     df = df.sort_values(by=date_column)
 
     start_index = batch_number * batch_size
@@ -94,14 +96,17 @@ def get_batch(file_path, batch_size, date_column, batch_number=0, output_dir=Non
 
     if batch.empty:
         if verbose:
-            logging.info(
-                f"No more batches available. Batch number {batch_number} is empty.")
+            logging.info(f"No more batches available. Batch number {batch_number} is empty.")
         return None  # No more batches available
 
     if not validate_batch(batch, batch_number, verbose=verbose):
         batch_number += 1
-        update_batch_number('options/config.yaml', batch_number)
+        update_batch_number("options/config.yaml", batch_number)
         return None
+
+    # Calculate and save batch metadata
+    metadata = calculate_batch_metadata(batch)
+    save_batch_metadata(metadata, batch_number, output_dir=config["report_storage"])
 
     if output_dir:
         os.makedirs(output_dir, exist_ok=True)
@@ -111,7 +116,7 @@ def get_batch(file_path, batch_size, date_column, batch_number=0, output_dir=Non
             logging.info(f"Batch {batch_number} saved to {batch_file_path}.")
 
     batch_number += 1
-    update_batch_number('options/config.yaml', batch_number)
+    update_batch_number("options/config.yaml", batch_number)
 
     return batch
 
@@ -127,8 +132,6 @@ def update_batch_number(config_path, new_batch_number):
 
     with open(config_path, 'w') as f:
         yaml.safe_dump(config, f)
-
-
 
 
 # Dataset quality check
@@ -211,6 +214,7 @@ def save_data_quality_report(metrics: dict, batch_number: int):
         yaml.safe_dump(metrics, f, indent=4)
     logging.info(f"Data quality report saved to {output_path}")
 
+
 def detect_data_drift(reference_df: pd.DataFrame, current_df: pd.DataFrame, columns: list) -> dict:
     """
     Detect data drift using KS-test for numerical columns.
@@ -271,7 +275,8 @@ def monitor_and_handle_data_drift(
         return
 
     # Step 2: Automatically detect numerical columns
-    numerical_columns = current_df.select_dtypes(include=["float64", "int64"]).columns.tolist()
+    numerical_columns = current_df.select_dtypes(
+        include=["float64", "int64"]).columns.tolist()
     if not numerical_columns:
         logging.warning("No numerical columns found for data drift detection.")
         return
@@ -304,6 +309,42 @@ def monitor_and_handle_data_drift(
     #     reference_data_path = os.path.join(output_dir, "reference_data.csv")
     #     updated_reference_df.to_csv(reference_data_path, index=False)
     #     logging.info(f"Updated reference data saved to {reference_data_path}")
+
+
+def calculate_batch_metadata(df: pd.DataFrame) -> dict:
+    """
+    Calculate metadata for a given batch of data.
+
+    Args:
+        df (pd.DataFrame): The batch of data.
+
+    Returns:
+        dict: A dictionary containing metadata for the batch.
+    """
+    metadata = {
+        "row_count": len(df),
+        "column_count": len(df.columns),
+        "numerical_summary": df.describe(include=[np.number]).to_dict(),
+        "timestamp": pd.Timestamp.now().isoformat()
+    }
+    return metadata
+
+
+def save_batch_metadata(metadata: dict, batch_number: int, output_dir: str):
+    """
+    Save batch metadata to a YAML file.
+
+    Args:
+        metadata (dict): The metadata to save.
+        batch_number (int): The batch number.
+        output_dir (str): The directory to save the metadata file.
+    """
+    os.makedirs(output_dir, exist_ok=True)
+    metadata_path = os.path.join(
+        output_dir, f"batch_metadata_{batch_number}.yaml")
+    with open(metadata_path, "w", encoding="utf-8") as f:
+        yaml.safe_dump(metadata, f, indent=4)
+    logging.info(f"Batch metadata saved to {metadata_path}")
 
 
 if __name__ == "__main__":
