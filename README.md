@@ -8,7 +8,7 @@ Begin by downloading the `games.json` file from the [Steam Games Dataset on Kagg
 
 1. Locate the downloaded `games.json.zip` file.
 2. Extract the contents of the `.zip` archive to retrieve the `games.json` file.
-3. Place the `games.json` file in the root directory of this repository.
+3. Place the `games.json` file in the storage/ directory of this repository.
 
 These steps ensure the dataset is properly organized and ready for further processing.
 
