@@ -22,7 +22,7 @@ pip install -r requirements.txt
 
 This will ensure all necessary libraries are installed in your environment. Python version is 3.9
 
-> **Note:** To make sure the dashboard is working, you will need a Chromium-based browser installed on your system.  
+> [!NOTE] To make sure the dashboard is working, you will need a Chromium-based browser installed on your system.  
 > Install it using the command:  
 > ```bash
 > playwright install chromium
@@ -87,6 +87,6 @@ A monitoring_report.txt file saved in the report_storage folder.
 
 Access dashboard by
 
-```
+```bash
 python dashboard/app.py
 ```
