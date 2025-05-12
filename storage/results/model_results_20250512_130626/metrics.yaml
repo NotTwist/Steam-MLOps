@@ -1,0 +1,26 @@
+DecisionTree:
+  best_params:
+    max_depth: 10
+    min_samples_leaf: 4
+    min_samples_split: 10
+  mae: 4.72786415567992
+  mse: 52.896664674449624
+  r2: 0.21015120302383794
+  training_time: 1.7046699523925781
+KNN:
+  best_params:
+    n_neighbors: 9
+    p: 1
+    weights: distance
+  mae: 5.140205022006821
+  mse: 57.21263186367624
+  r2: 0.14570552363782086
+  training_time: 1.6630864143371582
+LinearRegression:
+  best_params:
+    fit_intercept: false
+    positive: true
+  mae: 5.112271970424566
+  mse: 53.386429437893746
+  r2: 0.2028380744629268
+  training_time: 2.373746395111084
