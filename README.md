@@ -21,9 +21,9 @@ pip install -r requirements.txt
 ```
 
 This will ensure all necessary libraries are installed in your environment. Python version is 3.9
-> [!NOTE]
-> To make sure that dashboard is working you will need a chromium-based browser installed on your system. Install it using the command
 
+> **Note:** To make sure the dashboard is working, you will need a Chromium-based browser installed on your system.  
+> Install it using the command:  
 > ```bash
 > playwright install chromium
 > ```
