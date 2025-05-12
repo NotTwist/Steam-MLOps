@@ -13,7 +13,7 @@ batch_size: 1000
 batch_storage: storage/raw_batches
 best_model_path: storage/results/model_results_20250512_130626/best_model.pkl
 csv_file: storage/games.csv
-current_batch_number: 14
+current_batch_number: 15
 dataset_location: storage/games.json
 eda_storage: storage/results/eda
 encoders_path: storage/results/model_results_20250512_130626/encoders.pkl
