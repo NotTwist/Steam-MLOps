@@ -43,12 +43,12 @@ jobs:
       - name: Get model path from config
         id: model_path
         run: |
-          python - <<EOF
+          python -c "
           import yaml
           with open('options/config.yaml') as f:
               config = yaml.safe_load(f)
-          print(f"MODEL_PATH={config['best_model_path']}")
-          EOF >> $GITHUB_OUTPUT
+          print(f'MODEL_PATH={config[\"best_model_path\"]}')
+          " >> $GITHUB_OUTPUT
       - name: Upload model as artifact
         uses: actions/upload-artifact@v4
         with:
