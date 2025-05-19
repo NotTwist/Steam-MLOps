@@ -21,6 +21,7 @@ jobs:
         run: |
           pip install -r requirements.txt
           pip install kaggle  # Required for Kaggle API
+          pip install pyyaml # To work with config file
       - name: Configure Kaggle API
         env:
           KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
@@ -36,6 +37,17 @@ jobs:
             "https://www.kaggle.com/api/v1/datasets/download/fronkongames/steam-games-dataset"
           unzip steam-games-dataset.zip -d storage/
           rm steam-games-dataset.zip
-          rm storage/games.csv
+          rm storage/games.csv # some columns are written in the wrong format
       - name: Run update
         run: python run.py -mode update
+      - name: Get model path from config
+        id: model_path
+        run: |
+          # Extract the best_model_path from config.yaml
+          MODEL_PATH=$(python -c "import yaml; with open('options/config.yaml') as f; config = yaml.safe_load(f); print(config['best_model_path'])")
+          echo "MODEL_PATH=$MODEL_PATH" >> $GITHUB_OUTPUT
+      - name: Upload model as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: trained-model
+          path: ${{ steps.model_path.outputs.MODEL_PATH }}
